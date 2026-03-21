@@ -1,6 +1,7 @@
 import requests
 import sqlite3
 import os
+import html
 from datetime import datetime, timedelta
 from groq import Groq
 
@@ -91,12 +92,26 @@ Write a short poem (8–12 lines) that:
 1. Compares the weather in the three cities
 2. Describes the differences vividly
 3. Suggests which city would be nicest to be in tomorrow
-4. Is written FIRST in English, then repeated (translated) in Nepali
+4. Is written FIRST in English, then translated naturally into Nepali
+
+Requirements:
+- Mention all three cities
+- Avoid clichés such as "bright and bold", "young and old", or "the choice is clear"
+- Use sensory imagery such as breeze, light, chill, warmth, sky, air, or scent
+- Make the English version poetic but clear
+- Make the Nepali version natural and fluent
+- Do not mix Hindi words into Nepali
+- Avoid awkward contradictions like "cloudless grey"
+- Keep the recommendation clear but elegant
 
 Separate the two versions with a blank line and the label "— नेपाली अनुवाद —".
 """
 
-    client = Groq(api_key=os.environ["GROQ_API_KEY"])
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not set.")
+
+    client = Groq(api_key=api_key)
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
@@ -115,7 +130,7 @@ def save_html(forecasts: list[dict], poem: str) -> None:
     for f in forecasts:
         rows += f"""
         <tr>
-            <td>{f['location']}</td>
+            <td>{html.escape(str(f['location']))}</td>
             <td>{f['temperature_max']} / {f['temperature_min']}</td>
             <td>{f['wind_speed_max']}</td>
             <td>{f['cloud_cover_mean']}</td>
@@ -123,11 +138,11 @@ def save_html(forecasts: list[dict], poem: str) -> None:
         </tr>"""
 
     poem_html = "".join(
-        f'<p class="poem-line">{line if line.strip() else "&nbsp;"}</p>'
+        f'<p class="poem-line">{html.escape(line) if line.strip() else "&nbsp;"}</p>'
         for line in poem.splitlines()
     )
 
-    html = f"""<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -205,8 +220,6 @@ def save_html(forecasts: list[dict], poem: str) -> None:
       font-size: 1.05rem;
     }}
 
-    .poem-line:has(> *) {{ margin-top: 0.8rem; }}
-
     footer {{
       text-align: center;
       font-size: 0.8rem;
@@ -250,7 +263,7 @@ def save_html(forecasts: list[dict], poem: str) -> None:
 </html>
 """
     with open("docs/index.html", "w", encoding="utf-8") as fh:
-        fh.write(html)
+        fh.write(html_content)
     print("✅ docs/index.html written.")
 
 
