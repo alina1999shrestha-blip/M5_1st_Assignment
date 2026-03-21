@@ -1,0 +1,40 @@
+name: Weather Pipeline
+
+on:
+  schedule:
+    # 20:00 Danish time = 18:00 UTC (winter) / 19:00 UTC (summer)
+    # Using 18:00 UTC to be safe year-round (CET = UTC+1, CEST = UTC+2)
+    - cron: "0 18 * * *"
+  workflow_dispatch:   # allow manual runs from the Actions tab
+
+permissions:
+  contents: write      # needed to push docs/index.html and weather.db
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests groq
+
+      - name: Run fetch.py
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python fetch.py
+
+      - name: Commit and push results
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add weather.db docs/index.html
+          git diff --cached --quiet || git commit -m "🌤 Auto-update: weather + poem $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
