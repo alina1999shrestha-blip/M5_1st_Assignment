@@ -98,7 +98,7 @@ Separate the two versions with a blank line and the label "— नेपाल�
 
     client = Groq(api_key=os.environ["GROQ_API_KEY"])
     response = client.chat.completions.create(
-        model="llama3-8b-8192",
+        model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.9,
     )
