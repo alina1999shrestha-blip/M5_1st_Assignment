@@ -1,4 +1,7 @@
 # 🌤 Automated Weather Pipeline
+> **Course:** M6-Data Engineering and Machine Learning Operations in Business  
+> **Semester:** 2nd Semester — 2nd Course  
+> **Assignment:** 1st Assignment
 
 Collects daily weather forecasts for **Kathmandu**, **Biratnagar**, and **Aalborg**, generates a bilingual (English + Nepali) poem using the Groq LLM, and publishes the result on GitHub Pages.
 
